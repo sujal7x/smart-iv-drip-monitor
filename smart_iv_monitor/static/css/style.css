@@ -1,0 +1,375 @@
+/*
+  =============================================================================
+             SMART IV DRIP MONITOR - NURSE DASHBOARD STYLESHEET
+  =============================================================================
+  Theme: Professional Clinical / Telemetry Station
+  Font: Plus Jakarta Sans & JetBrains Mono
+  =============================================================================
+*/
+
+:root {
+  --primary-color: #0d6efd;
+  --success-color: #198754;
+  --warning-color: #f59e0b;
+  --danger-color: #dc3545;
+  --card-bg: #ffffff;
+  --bg-slate: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-primary);
+  background-color: var(--bg-slate);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================================== */
+/* TOP CLINICAL NAVBAR                                                        */
+/* ========================================================================== */
+.clinical-navbar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1020;
+}
+
+.brand-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  background-color: #eff6ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-title {
+  letter-spacing: -0.02em;
+}
+
+.ward-badge {
+  background: #0ea5e9;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  border-radius: 6px;
+}
+
+/* Backend Connection Status Badge */
+.connection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.connection-badge.connected {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.connection-badge.disconnected {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  animation: pulse-border 1.5s infinite;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: currentColor;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-green 2s infinite;
+}
+
+.connection-badge.disconnected .pulse-dot {
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulse-red {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* ========================================================================== */
+/* STATS SUMMARY CARDS                                                        */
+/* ========================================================================== */
+.stat-card {
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: #ffffff;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.08) !important;
+}
+
+.stat-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-total { border-left: 4px solid var(--primary-color); }
+.stat-normal { border-left: 4px solid var(--success-color); }
+.stat-lowflow { border-left: 4px solid var(--warning-color); }
+.stat-critical { border-left: 4px solid var(--danger-color); }
+.stat-alerts { border-left: 4px solid var(--danger-color); }
+
+/* ========================================================================== */
+/* TOOLBAR & SEARCH                                                           */
+/* ========================================================================== */
+.toolbar-card {
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.btn-filter {
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-filter:hover {
+  background-color: #f1f5f9;
+}
+
+.btn-filter.active {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.search-box input {
+  min-width: 250px;
+  border-radius: 30px;
+  border-color: var(--border-color);
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
+  animation: pulse-green 2s infinite;
+}
+
+/* ========================================================================== */
+/* DYNAMIC BED CARDS                                                          */
+/* ========================================================================== */
+.bed-card {
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  transition: all 0.25s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.bed-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Status-specific card accents */
+.bed-card.status-NORMAL {
+  border-top: 5px solid var(--success-color);
+}
+
+.bed-card.status-LOW_FLOW {
+  border-top: 5px solid var(--warning-color);
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 25%);
+}
+
+.bed-card.status-CRITICAL {
+  border-top: 5px solid var(--danger-color);
+  background: linear-gradient(180deg, #fef2f2 0%, #ffffff 25%);
+  animation: border-flash 2s infinite;
+}
+
+@keyframes border-flash {
+  0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+}
+
+.bed-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.bed-id-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.bed-status-pill {
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 30px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bed-status-pill.NORMAL {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.bed-status-pill.LOW_FLOW {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.bed-status-pill.CRITICAL {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Drip Rate Hero Number */
+.drip-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.drip-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.drip-unit {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Volume Progress Bar */
+.iv-progress-wrapper {
+  background: #f1f5f9;
+  border-radius: 8px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.2) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+/* Time to Empty Badge */
+.empty-time-pill {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+/* Card Footer */
+.bed-card-footer {
+  padding: 12px 18px;
+  background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* ========================================================================== */
+/* ALERTS TABLE                                                               */
+/* ========================================================================== */
+.alerts-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+  border-top: none;
+}
+
+.alert-row-CRITICAL {
+  background-color: #fff5f5;
+}
+
+.alert-row-LOW_FLOW {
+  background-color: #fffdf5;
+}
+
+.alert-type-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* ========================================================================== */
+/* MODAL STYLES                                                               */
+/* ========================================================================== */
+.clinical-modal-header {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-bed-icon-box {
+  width: 48px;
+  height: 48px;
+  background-color: #eff6ff;
+  color: #0d6efd;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========================================================================== */
+/* FOOTER                                                                     */
+/* ========================================================================== */
+.clinical-footer {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}

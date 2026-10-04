@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart IV Drip Monitor - Central Nurse Station</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts: Inter / Roboto for Medical UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-50">
+
+  <!-- ========================================================================= -->
+  <!-- TOP CLINICAL NAVBAR                                                       -->
+  <!-- ========================================================================= -->
+  <nav class="navbar navbar-expand-lg clinical-navbar sticky-top shadow-sm">
+    <div class="container-fluid px-3 px-lg-4">
+      
+      <!-- Brand & Hospital Ward Branding -->
+      <div class="d-flex align-items-center gap-3">
+        <div class="brand-icon-wrapper">
+          <i class="bi bi-droplet-half fs-3 text-primary"></i>
+        </div>
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h1 class="h5 mb-0 fw-bold tracking-tight text-dark brand-title">SMART IV DRIP MONITOR</h1>
+            <span class="badge ward-badge">WARD 01</span>
+          </div>
+          <p class="text-muted mb-0 small brand-subtitle">Real-Time Hospital Ward Monitoring System</p>
+        </div>
+      </div>
+
+      <!-- Right Header Actions: Connectivity, Sound Toggle, System Clock -->
+      <div class="d-flex align-items-center gap-2 gap-md-3 mt-2 mt-lg-0">
+        
+        <!-- Live Connection Status Badge -->
+        <div id="backendConnectionBadge" class="connection-badge connected">
+          <span class="pulse-dot"></span>
+          <span id="backendConnectionText">🟢 BACKEND CONNECTED</span>
+        </div>
+
+        <!-- Audio Alert Chime Mute/Unmute Toggle -->
+        <button id="soundToggleBtn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" title="Toggle Audio Alarms">
+          <i id="soundIcon" class="bi bi-volume-up-fill text-primary"></i>
+          <span id="soundText" class="d-none d-sm-inline">Sound On</span>
+        </button>
+
+        <!-- Current Ward Time -->
+        <div class="clock-display d-none d-md-flex align-items-center gap-2">
+          <i class="bi bi-clock text-secondary"></i>
+          <span id="systemClock" class="font-monospace fw-bold text-dark">--:--:--</span>
+        </div>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                                    -->
+  <!-- ========================================================================= -->
+  <main class="container-fluid px-3 px-lg-4 py-4">
+
+    <!-- KPI STATS SUMMARY ROW -->
+    <section class="row g-3 mb-4">
+      
+      <!-- Total Beds -->
+      <div class="col-6 col-md-4 col-xl-2-4 col-xxl">
+        <div class="card stat-card stat-total shadow-sm h-100">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted fw-semibold small text-uppercase">Total Beds</span>
+                <h3 id="statTotalBeds" class="mb-0 fw-bold mt-1 text-dark">0</h3>
+              </div>
+              <div class="stat-icon-box bg-primary-subtle text-primary">
+                <i class="bi bi-hospital fs-4"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small">Registered in Ward 01</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Normal Flow -->
+      <div class="col-6 col-md-4 col-xl-2-4 col-xxl">
+        <div class="card stat-card stat-normal shadow-sm h-100">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted fw-semibold small text-uppercase">Normal Flow</span>
+                <h3 id="statNormalBeds" class="mb-0 fw-bold mt-1 text-success">0</h3>
+              </div>
+              <div class="stat-icon-box bg-success-subtle text-success">
+                <i class="bi bi-check-circle-fill fs-4"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small">&ge; 10 drops/min</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Low Flow -->
+      <div class="col-6 col-md-4 col-xl-2-4 col-xxl">
+        <div class="card stat-card stat-lowflow shadow-sm h-100">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted fw-semibold small text-uppercase">Low Flow</span>
+                <h3 id="statLowFlowBeds" class="mb-0 fw-bold mt-1 text-warning">0</h3>
+              </div>
+              <div class="stat-icon-box bg-warning-subtle text-warning">
+                <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small">&lt; 10 drops/min</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Critical / Stopped Flow -->
+      <div class="col-6 col-md-6 col-xl-2-4 col-xxl">
+        <div class="card stat-card stat-critical shadow-sm h-100">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted fw-semibold small text-uppercase">Critical / Stopped</span>
+                <h3 id="statCriticalBeds" class="mb-0 fw-bold mt-1 text-danger">0</h3>
+              </div>
+              <div class="stat-icon-box bg-danger-subtle text-danger">
+                <i class="bi bi-slash-circle-fill fs-4"></i>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small">0 drops/min (Blocked)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Alerts -->
+      <div class="col-12 col-md-6 col-xl-2-4 col-xxl">
+        <div class="card stat-card stat-alerts shadow-sm h-100" id="statAlertsCard">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="text-muted fw-semibold small text-uppercase">Active Alerts</span>
+                <h3 id="statActiveAlerts" class="mb-0 fw-bold mt-1 text-danger">0</h3>
+              </div>
+              <div class="stat-icon-box bg-danger text-white position-relative">
+                <i class="bi bi-bell-fill fs-4"></i>
+                <span id="alertPingBadge" class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle d-none">
+                  <span class="visually-hidden">New alerts</span>
+                </span>
+              </div>
+            </div>
+            <div class="mt-2 text-muted small">Unacknowledged events</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- CONTROLS & FILTER TOOLBAR                                              -->
+    <!-- ======================================================================= -->
+    <div class="card shadow-sm border-0 mb-4 toolbar-card">
+      <div class="card-body p-3">
+        <div class="row g-2 align-items-center justify-content-between">
+          
+          <!-- Filter Buttons -->
+          <div class="col-12 col-md-auto d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-filter active" data-filter="ALL">
+              All Beds <span class="badge bg-secondary ms-1" id="filterCountAll">0</span>
+            </button>
+            <button class="btn btn-sm btn-filter filter-normal" data-filter="NORMAL">
+              <i class="bi bi-circle-fill text-success me-1"></i> Normal
+            </button>
+            <button class="btn btn-sm btn-filter filter-lowflow" data-filter="LOW_FLOW">
+              <i class="bi bi-circle-fill text-warning me-1"></i> Low Flow
+            </button>
+            <button class="btn btn-sm btn-filter filter-critical" data-filter="CRITICAL">
+              <i class="bi bi-circle-fill text-danger me-1"></i> Critical
+            </button>
+          </div>
+
+          <!-- Live Refresh Status & Bed Search -->
+          <div class="col-12 col-md-auto d-flex align-items-center gap-2">
+            <div class="search-box position-relative">
+              <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+              <input type="text" id="bedSearchInput" class="form-control form-control-sm ps-5" placeholder="Search Bed ID (e.g. BED-01)...">
+            </div>
+
+            <div class="live-pill d-none d-sm-flex align-items-center gap-2 px-3 py-1 bg-light rounded-pill border text-muted small">
+              <span class="live-dot"></span>
+              <span>Live Sync (2s)</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- DYNAMIC BED CARDS GRID                                                  -->
+    <!-- ======================================================================= -->
+    <div class="mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+          <i class="bi bi-grid-fill text-primary"></i> Bed Monitoring Grid
+        </h2>
+        <span class="text-muted small" id="gridSyncTimestamp">Updated: Just now</span>
+      </div>
+
+      <!-- Container dynamically populated by dashboard.js -->
+      <div class="row g-3 g-xl-4" id="bedCardsContainer">
+        <!-- Loading State Skeleton -->
+        <div class="col-12 text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading telemetry...</span>
+          </div>
+          <p class="text-muted mt-2">Connecting to Smart IV Drip telemetry server...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- WARD ALERTS & EVENT LOGS SECTION                                       -->
+    <!-- ======================================================================= -->
+    <section class="card shadow-sm border-0 mb-4" id="alertsSection">
+      <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bell-fill text-danger fs-5"></i>
+          <h2 class="h5 fw-bold mb-0 text-dark">Ward Alert Monitor</h2>
+          <span class="badge bg-danger rounded-pill ms-2" id="alertsPanelCountBadge">0 Active</span>
+        </div>
+        <button id="refreshAlertsBtn" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 alerts-table">
+            <thead class="table-light">
+              <tr>
+                <th scope="col" style="width: 120px;">Bed ID</th>
+                <th scope="col" style="width: 140px;">Alert Type</th>
+                <th scope="col">Message</th>
+                <th scope="col" style="width: 180px;">Timestamp</th>
+                <th scope="col" style="width: 130px;">Status</th>
+                <th scope="col" style="width: 140px;" class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="alertsTableBody">
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                  <i class="bi bi-shield-check text-success fs-3 d-block mb-1"></i>
+                  No active alerts recorded. All beds operating normally.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- BED TELEMETRY & DRIP RATE GRAPH MODAL                                    -->
+  <!-- ========================================================================= -->
+  <div class="modal fade" id="bedDetailModal" tabindex="-1" aria-labelledby="bedDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow">
+        
+        <!-- Modal Header -->
+        <div class="modal-header clinical-modal-header bg-light">
+          <div class="d-flex align-items-center gap-3">
+            <div class="modal-bed-icon-box" id="modalBedIconBox">
+              <i class="bi bi-hospital fs-4"></i>
+            </div>
+            <div>
+              <h1 class="modal-title h5 fw-bold mb-0 text-dark" id="bedDetailModalLabel">BED-01 Telemetry</h1>
+              <p class="text-muted mb-0 small" id="modalBedSubtitle">Ward 01 &bull; Continuous Infusion Analytics</p>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body p-4">
+          
+          <!-- Key Metrics Badges Row -->
+          <div class="row g-2 mb-4">
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded text-center">
+                <span class="text-muted small text-uppercase fw-semibold d-block">Status</span>
+                <span class="badge mt-1 fs-6" id="modalBedStatusBadge">--</span>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded text-center">
+                <span class="text-muted small text-uppercase fw-semibold d-block">Drop Rate</span>
+                <div class="fs-4 fw-bold text-dark mt-1" id="modalBedDropRate">-- dpm</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded text-center">
+                <span class="text-muted small text-uppercase fw-semibold d-block">Remaining Vol</span>
+                <div class="fs-5 fw-bold text-dark mt-1" id="modalBedVolume">-- / -- mL</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-3 bg-light rounded text-center">
+                <span class="text-muted small text-uppercase fw-semibold d-block">Est. Empty In</span>
+                <div class="fs-5 fw-bold text-primary mt-1" id="modalBedEmptyTime">--</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart.js Real-Time Drip Rate Graph -->
+          <div class="card border mb-4">
+            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+              <span class="fw-bold small text-uppercase text-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-activity text-primary"></i> Drip Rate Trend (Last 30 Readings)
+              </span>
+              <span class="badge bg-light text-dark border font-monospace small" id="modalChartLiveBadge">Live Polling</span>
+            </div>
+            <div class="card-body p-3">
+              <div class="chart-container" style="position: relative; height: 260px; width: 100%;">
+                <canvas id="bedTelemetryChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Bed Specific Alerts -->
+          <div>
+            <h6 class="fw-bold text-secondary text-uppercase small mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-circle"></i> Recent Bed Incident Log
+            </h6>
+            <div id="modalBedAlertsList" class="list-group list-group-flush border rounded">
+              <div class="list-group-item text-muted small py-3 text-center">
+                No recent critical alerts for this bed.
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer bg-light py-2">
+          <span class="text-muted small me-auto" id="modalLastUpdatedText">Last updated: --</span>
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER & CLINICAL DISCLAIMER                                             -->
+  <!-- ========================================================================= -->
+  <footer class="clinical-footer mt-auto py-3 bg-white border-top">
+    <div class="container-fluid px-3 px-lg-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-shield-exclamation text-warning fs-5"></i>
+        <span class="small text-muted">
+          <strong>HOSPITAL SAFETY NOTICE:</strong> Prototype system for educational demonstration only. Not a clinically certified medical device.
+        </span>
+      </div>
+      <div class="small text-muted">
+        Smart IV Drip Monitor &bull; Aavishkar Engineering Project
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Dashboard JavaScript -->
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
