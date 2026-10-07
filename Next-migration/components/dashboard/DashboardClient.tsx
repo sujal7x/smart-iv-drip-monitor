@@ -1,28 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Line } from "react-chartjs-2";
 import { CategoryScale, Chart as ChartJS, Filler, Legend, LinearScale, LineElement, PointElement, Tooltip } from "chart.js";
 import { firebaseConfigured } from "../../lib/firebase";
 import { loadBeds, saveBed } from "../../lib/bed-repository";
 import { Bed, Patient, SalineReading, SalineStatus } from "../../lib/types";
+import { demoBeds } from "../../lib/demo-data";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 type View = "ward" | "patients" | "saline" | "vitals" | "alerts";
 
-const timestamp = new Date().toISOString();
-const seedBeds: Bed[] = [
-  createBed("bed-a1", "A-01", "Room 101", 16, 30, "Maya Fernandes", "Viral fever", "2026-10-09", "Anika Rao", 76, 37.2, true, "STABLE", "Normal saline · 500 mL"),
-  createBed("bed-a2", "A-02", "Room 101", 38, 30, "Arjun Mehta", "Dehydration", "2026-10-10", "Anika Rao", 32, 38.1, true, "LOW", "Ringer's lactate · 500 mL"),
-  createBed("bed-b1", "B-01", "Room 102", 62, 30, "Sana Iqbal", "Post-operative care", "2026-10-12", "Ravi Shah", 14, 36.9, true, "NEAR_EMPTY", "Normal saline · 500 mL"),
-  { id: "bed-b2", label: "B-02", room: "Room 102", position: { x: 84, y: 30 }, patient: null, salineLevel: null, salineLabel: null, temperature: null, lastUpdated: timestamp, deviceConnected: false, status: "OFFLINE" },
-  createBed("bed-c1", "C-01", "Room 103", 26, 72, "Daniel Joseph", "Gastroenteritis", "2026-10-08", "Ravi Shah", 58, 37.5, true, "STABLE", "Normal saline · 500 mL"),
-  createBed("bed-c2", "C-02", "Room 103", 74, 72, "Ishita Kapoor", "Dengue observation", "2026-10-13", "Meera Nair", 47, 38.4, false, "OFFLINE", "Dextrose saline · 500 mL"),
-];
-
-function createBed(id: string, label: string, room: string, x: number, y: number, name: string, diagnosis: string, estimatedDischargeDate: string, nurseName: string, salineLevel: number, temperature: number, deviceConnected: boolean, status: SalineStatus, salineLabel: string): Bed {
-  return { id, label, room, position: { x, y }, patient: { name, diagnosis, estimatedDischargeDate, nurseName }, salineLevel, salineLabel, temperature, lastUpdated: timestamp, deviceConnected, status };
-}
+const seedBeds: Bed[] = demoBeds;
 
 const statusLabel: Record<SalineStatus, string> = { STABLE: "Stable", LOW: "Low level", NEAR_EMPTY: "Near empty", OFFLINE: "Device offline" };
 const pages: Record<View, [string, string]> = {
@@ -34,11 +24,11 @@ const pages: Record<View, [string, string]> = {
 };
 
 export default function DashboardClient() {
+  const router = useRouter();
   const [beds, setBeds] = useState<Bed[]>(seedBeds);
   const [selectedId, setSelectedId] = useState(seedBeds[0].id);
   const [view, setView] = useState<View>("ward");
   const [formOpen, setFormOpen] = useState(false);
-  const [trackerOpen, setTrackerOpen] = useState(false);
   const [dataMode, setDataMode] = useState(firebaseConfigured ? "Firebase ready" : "Demo data");
 
   useEffect(() => { loadBeds().then((saved) => { if (saved?.length) { setBeds(saved); setSelectedId(saved[0].id); setDataMode("Firestore"); } }).catch(() => setDataMode("Demo data")); }, []);
@@ -50,10 +40,11 @@ export default function DashboardClient() {
   const average = connected.length ? Math.round(connected.reduce((sum, bed) => sum + (bed.salineLevel ?? 0), 0) / connected.length) : 0;
 
   const selectBed = (id: string) => { setSelectedId(id); setView("ward"); };
+  const openPatient = (id: string) => router.push(`/patient/${id}`);
   async function addPatient(input: Patient & { bedId: string }) {
     const existing = beds.find((bed) => bed.id === input.bedId);
     if (!existing) return;
-    const updated: Bed = { ...existing, patient: input, salineLevel: 100, salineLabel: "No saline assigned", temperature: null, status: "OFFLINE", deviceConnected: false, lastUpdated: new Date().toISOString() };
+    const updated: Bed = { ...existing, patient: input, salineLevel: 100, salineLabel: "No saline assigned", loadCellDelta: 0, dropsPerMinute: null, temperature: null, status: "OFFLINE", deviceConnected: false, lastUpdated: new Date().toISOString() };
     setBeds((current) => current.map((bed) => bed.id === updated.id ? updated : bed));
     setSelectedId(updated.id); setView("ward"); setFormOpen(false);
     if (await saveBed(updated)) setDataMode("Firestore");
@@ -65,14 +56,13 @@ export default function DashboardClient() {
     <main className="neon-main">
       <header className="topbar"><div><div className="crumb">WARD 01 <i className="bi bi-chevron-right" /> {view.toUpperCase()}</div><h1>{pages[view][0]}</h1><p>{pages[view][1]}</p></div><div className="top-actions"><div className="date-chip"><i className="bi bi-calendar3" /> {new Date().toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}</div><button className="neon-button" onClick={() => setFormOpen(true)}><i className="bi bi-plus-lg" /> Add patient</button></div></header>
       <MobileNav current={view} onChange={setView} />
-      {view === "ward" && <WardView beds={beds} selected={selected} occupied={occupied} attention={attention} average={average} onSelect={setSelectedId} onTracker={() => setTrackerOpen(true)} />}
-      {view === "patients" && <PatientsView beds={beds} onSelect={selectBed} />}
-      {view === "saline" && <SalineWatch beds={beds} onSelect={selectBed} />}
-      {view === "vitals" && <VitalsView beds={beds} onSelect={selectBed} />}
-      {view === "alerts" && <AlertsView beds={beds} onSelect={selectBed} />}
+      {view === "ward" && <WardView beds={beds} selected={selected} occupied={occupied} attention={attention} average={average} onSelect={setSelectedId} onTracker={() => openPatient(selected.id)} />}
+      {view === "patients" && <PatientsView beds={beds} onSelect={openPatient} />}
+      {view === "saline" && <SalineWatch beds={beds} onSelect={openPatient} />}
+      {view === "vitals" && <VitalsView beds={beds} onSelect={openPatient} />}
+      {view === "alerts" && <AlertsView beds={beds} onSelect={openPatient} />}
     </main>
     {formOpen && <AddPatientModal beds={beds} onClose={() => setFormOpen(false)} onSave={addPatient} />}
-    {trackerOpen && <PatientTracker bed={selected} onClose={() => setTrackerOpen(false)} />}
   </div>;
 }
 

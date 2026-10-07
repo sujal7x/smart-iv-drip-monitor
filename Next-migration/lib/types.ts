@@ -15,6 +15,8 @@ export interface Bed {
   patient: Patient | null;
   salineLevel: number | null;
   salineLabel: string | null;
+  loadCellDelta: number | null;
+  dropsPerMinute: number | null;
   temperature: number | null;
   lastUpdated: string;
   deviceConnected: boolean;
