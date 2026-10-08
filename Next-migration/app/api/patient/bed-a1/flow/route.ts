@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await fetch(`${ESP32_BASE_URL}/${action}`, {
-      method: "GET",
+      method: "POST",
       cache: "no-store",
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
